@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from helpers import checks
+from helpers import checks, activityHelper
 
 
 # Here we name the cog and create a new class for the cog.
@@ -30,11 +30,18 @@ class Activity(commands.Cog, name="activity"):
 
         :param context: The hybrid command context.
         """
-        roles = [role.name for role in context.guild.roles]
-        if len(roles) > 50:
-            roles = roles[:50]
-            roles.append(f">>>> Displaying[50/{len(roles)}] Roles")
-        roles = ", ".join(roles)
+        memDict = {}
+
+        text_channels = activityHelper.filterChannels(context.guild.channels)
+        all_messages = await activityHelper.getMessages(text_channels)
+
+        for member in context.guild.members:
+            memDict["name"] = member.name
+            user_last_message = activityHelper.getLastMessage(all_messages, member)
+            time_idle = activityHelper.checkIdleTime(user_last_message.created_at.replace(tzinfo = None))
+            memDict["idle time"] = activityHelper.generateIdleMessage(time_idle)
+        
+
 
         embed = discord.Embed(
             title="**Server Name:**", description=f"{context.guild}", color=0x9C84EF
@@ -46,8 +53,8 @@ class Activity(commands.Cog, name="activity"):
         embed.add_field(
             name="Text/Voice Channels", value=f"{len(context.guild.channels)}"
         )
-        embed.add_field(name=f"Roles ({len(context.guild.roles)})", value=roles)
-        embed.set_footer(text=f"Created at: {context.guild.created_at}")
+        embed.add_field(name="Members", value=memDict)
+
         await context.send(embed=embed)
 
 

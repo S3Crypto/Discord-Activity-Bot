@@ -29,8 +29,7 @@ the `@app_commands.guilds()` decorator so that it gets registered instantly. Exa
 
 ## How to set up
 
-To set up the bot I made it as simple as possible. I now created a [config.json](config.json) file where you can put the
-needed things to edit.
+I've .gitignored config.json which contains the config settings for the bot due to privacy concerns.
 
 Here is an explanation of what everything is:
 

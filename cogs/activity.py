@@ -36,7 +36,7 @@ class Activity(commands.Cog, name="activity"):
         memDict = {}
 
         text_channels = activityHelper.filterChannels(context.guild.channels)
-        all_messages = await activityHelper.getMessages(text_channels)
+        all_messages, weeklyTotal = await activityHelper.getMessages(text_channels)
 
         # Create a CSV file in-memory
         csv_file = io.StringIO()
@@ -61,16 +61,16 @@ class Activity(commands.Cog, name="activity"):
         # Reset the file pointer to the beginning of the file
         csv_file.seek(0)
 
-        embed = discord.Embed(
-            title="**Server Name:**", description=f"{context.guild}", color=0x9C84EF
-        )
+        embed = discord.Embed(title="**Server Name:**", description=f"{context.guild}", color=0x9C84EF)
+
         if context.guild.icon is not None:
             embed.set_thumbnail(url=context.guild.icon.url)
+
         embed.add_field(name="Server ID", value=context.guild.id)
         embed.add_field(name="Member Count", value=context.guild.member_count)
-        embed.add_field(
-            name="Text/Voice Channels", value=f"{len(context.guild.channels)}"
-        )        
+        embed.add_field(name="Text/Voice Channels", value=f"{len(context.guild.channels)}")
+        # Add Total Messages in the Last Week field to the embed
+        embed.add_field(name="Total Messages (Last Week)", value=weeklyTotal, inline=False)      
         # Add Inactive Members field to the embed
         embed.add_field(name="Inactive Members", value="\n".join(inactive_members) if inactive_members else "None", inline=False)
 

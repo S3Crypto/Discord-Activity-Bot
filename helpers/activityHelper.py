@@ -30,11 +30,15 @@ def filterChannels(channels):
 
 async def getMessages(channels):
     messages = []
+    weeklyTotal = 0
+
     for chan in channels:
         async for message in chan.history(limit=500):
-            messages.append(message)
+            messages.append(message)            
+            if withinLastWeek(message.created_at.replace(tzinfo=None)):
+                weeklyTotal += 1
 
-    return messages
+    return messages, weeklyTotal
 
 def getLastMessage(msg_arr, user):
     user_messages = []
@@ -63,6 +67,11 @@ def is_inactive(last_message_time, threshold_days):
     now = datetime.utcnow()
     threshold = timedelta(days=threshold_days)
     return (now - last_message_time) > threshold
+
+def withinLastWeek(message_timestamp):
+    now = datetime.utcnow()
+    one_week_ago = now - timedelta(weeks=1)
+    return message_timestamp > one_week_ago
 
 
 

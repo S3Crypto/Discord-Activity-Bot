@@ -59,6 +59,11 @@ def calculateUserMessagePercentage(messages, user):
     user_message_percentage = (user_messages_count / total_messages) * 100
     return user_message_percentage
 
+def is_inactive(last_message_time, threshold_days):
+    now = datetime.utcnow()
+    threshold = timedelta(days=threshold_days)
+    return (now - last_message_time) > threshold
+
 
 
 

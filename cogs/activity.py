@@ -43,9 +43,15 @@ class Activity(commands.Cog, name="activity"):
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(['Name', 'Idle Time', 'Message Percentage'])
 
+        inactivity_threshold_days = 7
+        inactive_members = []
+
         for member in context.guild.members:
             memDict["Name"] = member.name
             user_last_message = activityHelper.getLastMessage(all_messages, member)
+            if activityHelper.is_inactive(user_last_message.created_at.replace(tzinfo=None), inactivity_threshold_days):
+                inactive_members.append(member.name)
+
             time_idle = activityHelper.checkIdleTime(user_last_message.created_at.replace(tzinfo = None))
             idle_time = activityHelper.generateIdleMessage(time_idle)
             message_percentage = activityHelper.calculateUserMessagePercentage(all_messages,member) 
@@ -64,8 +70,9 @@ class Activity(commands.Cog, name="activity"):
         embed.add_field(name="Member Count", value=context.guild.member_count)
         embed.add_field(
             name="Text/Voice Channels", value=f"{len(context.guild.channels)}"
-        )
-        #embed.add_field(name="Members", value=memDict)
+        )        
+        # Add Inactive Members field to the embed
+        embed.add_field(name="Inactive Members", value="\n".join(inactive_members) if inactive_members else "None", inline=False)
 
         await context.send(embed=embed, file=discord.File(csv_file, filename="members.csv"))
 

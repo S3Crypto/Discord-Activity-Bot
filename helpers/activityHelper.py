@@ -32,19 +32,33 @@ async def getMessages(channels):
     messages = []
     for chan in channels:
         async for message in chan.history(limit=500):
-            messages.append(message.content)
+            messages.append(message)
 
     return messages
 
 def getLastMessage(msg_arr, user):
     user_messages = []
 
-    for block in msg_arr:
-        for msg in block:
-            if msg.author == user:
-                user_messages.append(msg)
+    for msg in msg_arr:
+        if msg.author == user:
+            user_messages.append(msg)
 
-    return user_messages[0]
+    return user_messages[0] if user_messages else None
+
+def calculateUserMessagePercentage(messages, user):
+    total_messages = len(messages)
+    user_messages_count = 0
+
+    for msg in messages:
+        if msg.author == user:
+            user_messages_count += 1
+
+    if total_messages == 0:
+        return 0
+
+    user_message_percentage = (user_messages_count / total_messages) * 100
+    return user_message_percentage
+
 
 
 

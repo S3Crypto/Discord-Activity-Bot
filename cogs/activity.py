@@ -8,6 +8,9 @@ from discord.ext.commands import Context
 
 from helpers import checks, activityHelper
 
+import csv
+import io
+
 
 # Here we name the cog and create a new class for the cog.
 class Activity(commands.Cog, name="activity"):
@@ -35,13 +38,22 @@ class Activity(commands.Cog, name="activity"):
         text_channels = activityHelper.filterChannels(context.guild.channels)
         all_messages = await activityHelper.getMessages(text_channels)
 
+        # Create a CSV file in-memory
+        csv_file = io.StringIO()
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['Name', 'Idle Time', 'Message Percentage'])
+
         for member in context.guild.members:
-            memDict["name"] = member.name
+            memDict["Name"] = member.name
             user_last_message = activityHelper.getLastMessage(all_messages, member)
             time_idle = activityHelper.checkIdleTime(user_last_message.created_at.replace(tzinfo = None))
-            memDict["idle time"] = activityHelper.generateIdleMessage(time_idle)
+            idle_time = activityHelper.generateIdleMessage(time_idle)
+            message_percentage = activityHelper.calculateUserMessagePercentage(all_messages,member) 
+            # Write a row to the CSV file for each member
+            csv_writer.writerow([member.name, idle_time, f"{message_percentage:.2f}%"])
         
-
+        # Reset the file pointer to the beginning of the file
+        csv_file.seek(0)
 
         embed = discord.Embed(
             title="**Server Name:**", description=f"{context.guild}", color=0x9C84EF
@@ -53,9 +65,9 @@ class Activity(commands.Cog, name="activity"):
         embed.add_field(
             name="Text/Voice Channels", value=f"{len(context.guild.channels)}"
         )
-        embed.add_field(name="Members", value=memDict)
+        #embed.add_field(name="Members", value=memDict)
 
-        await context.send(embed=embed)
+        await context.send(embed=embed, file=discord.File(csv_file, filename="members.csv"))
 
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.

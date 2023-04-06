@@ -74,7 +74,12 @@ class Activity(commands.Cog, name="activity"):
         # Add Inactive Members field to the embed
         embed.add_field(name="Inactive Members", value="\n".join(inactive_members) if inactive_members else "None", inline=False)
 
-        await context.send(embed=embed, file=discord.File(csv_file, filename="members.csv"))
+        # Try send the embed via DM to the sender with error handling
+        try:
+            dm_channel = await context.author.create_dm()
+            await dm_channel.send(embed=embed, file=discord.File(csv_file, filename="members.csv"))
+        except discord.errors.Forbidden:
+            await context.send(f"{context.author.mention}, I couldn't send you a DM. Please make sure your DM settings allow messages from server members.")
 
 
 # And then we finally add the cog to the bot so that it can load, unload, reload and use it's content.
